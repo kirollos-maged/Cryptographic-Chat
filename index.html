@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>0xBP7 Chat</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+<div class="app">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                <h2>0xBP7 Chat</h2>
+            </div>
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="searchInput" placeholder="Search conversations...">
+            </div>
+        </div>
+
+        <div class="conversations-label">CONVERSATIONS</div>
+
+        <div class="contacts-list" id="contactsList">
+            <!-- Contacts are injected dynamically -->
+        </div>
+
+        <div class="active-cipher-panel">
+            <div class="cipher-panel-inner">
+                <div class="cipher-dot"></div>
+                <div class="cipher-info">
+                    <div class="cipher-name" id="activeCipherName">AES-128 ECB</div>
+                    <div class="cipher-sub">Messages + voice both encrypted</div>
+                </div>
+                <i class="fa-solid fa-lock cipher-lock-icon"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHAT -->
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="user-info">
+                <div class="avatar blue" id="headerAvatar">J</div>
+                <div class="header-text">
+                    <h3 id="headerUsername">User</h3>
+                    <span class="e2e-badge"><i class="fa-solid fa-lock" style="font-size:9px"></i> E2E encrypted</span>
+                    <span class="online-dot"> • Online</span>
+                </div>
+            </div>
+
+            <div class="cipher-toolbar">
+                <span class="toolbar-label">Mode:</span>
+                <div class="cipher-pills" id="cipherPills">
+                    <button class="cipher-pill active" data-value="aes">AES</button>
+                    <button class="cipher-pill" data-value="des">DES</button>
+                    <button class="cipher-pill" data-value="3des">3DES</button>
+                    <button class="cipher-pill" data-value="rsa">RSA</button>
+                    <button class="cipher-pill" data-value="hex">Hex</button>
+                    <button class="cipher-pill" data-value="base64">B64</button>
+                    <button class="cipher-pill" data-value="normal">Plain</button>
+                </div>
+
+                <div class="voice-pill-wrap">
+                    <span class="toolbar-label voice-label">
+                        <i class="fa-solid fa-microphone" style="font-size:11px"></i> Voice:
+                    </span>
+                    <select id="voiceCipherSelect" class="voice-cipher-select">
+                        <option value="same">Same as text</option>
+                        <option value="aes">AES</option>
+                        <option value="des">DES</option>
+                        <option value="3des">3DES</option>
+                        <option value="normal">None</option>
+                    </select>
+                </div>
+
+                <input type="password" id="secretKey"
+                       class="key-input"
+                       placeholder="🔑 Secret key…"
+                       title="Secret key for AES / DES / 3DES">
+            </div>
+
+            <div class="header-icons">
+                <button title="Audio call"><i class="fa-solid fa-phone"></i></button>
+                <button title="Video call"><i class="fa-solid fa-video"></i></button>
+                <button title="Info"><i class="fa-solid fa-circle-info"></i></button>
+            </div>
+        </div>
+
+        <div class="session-banner" id="sessionBanner">
+            <i class="fa-solid fa-lock" style="font-size:11px"></i>
+            Session started · <span id="sessionCipherLabel">AES-128</span> active
+        </div>
+
+        <div class="messages" id="messages">
+            <div class="system-message">
+                <span>🔐 Connecting to secure server...</span>
+            </div>
+        </div>
+
+        <div class="chat-input">
+            <button class="icon-btn" id="attachBtn" title="Attach file">
+                <i class="fa-solid fa-paperclip"></i>
+            </button>
+            <button class="icon-btn" id="emojiToggleBtn" title="Emoji">
+                <i class="fa-regular fa-face-smile"></i>
+            </button>
+            <button class="icon-btn" id="micBtn" title="Record voice message">
+                <i class="fa-solid fa-microphone"></i>
+            </button>
+
+            <input type="text" id="messageInput" placeholder="Type a secure message...">
+
+            <button id="sendBtn">
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<select id="encryptSelect" style="display:none">
+    <option value="normal">Normal</option>
+    <option value="aes" selected>AES</option>
+    <option value="des">DES</option>
+    <option value="3des">3DES</option>
+    <option value="rsa">RSA</option>
+    <option value="base64">Base64</option>
+    <option value="hex">Hex</option>
+    <option value="url">URL Encode</option>
+    <option value="sha256">SHA-256</option>
+    <option value="sha512">SHA-512</option>
+    <option value="salted_sha256">🧂 Salted SHA-256</option>
+    <option value="salted_sha512">🧂 Salted SHA-512</option>
+</select>
+<span id="usernameText" style="display:none"></span>
+<div id="userAvatar" style="display:none"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+<script src="crypto.js"></script>
+<script src="script.js"></script>
+<script src="ui-extras.js"></script>
+</body>
+</html>

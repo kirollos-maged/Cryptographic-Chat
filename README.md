@@ -1,120 +1,118 @@
- 0xBP7 Chat 🔐
- 
-A private, end-to-end encrypted real-time chat application with support for multiple cipher algorithms, voice messages, file sharing, and WebRTC audio/video calls.
- 
----
- 
-## Features
- 
-- **Private messaging** — 1-on-1 encrypted chat over WebSockets
-- **Multiple encryption methods** — switch ciphers per message on the fly
-- **Encrypted voice messages** — audio recorded and encrypted in the browser before sending
-- **File sharing** — chunked file transfer between peers
-- **WebRTC calls** — peer-to-peer audio and video calls
-- **Python CLI client** — terminal-based alternative to the browser UI
----
- 
-## Encryption Support
- 
-| Category | Algorithms |
+# 0xBP7 Chat
+
+0xBP7 Chat is a local browser chat and cryptography demonstration built with
+Python and vanilla JavaScript. It includes a WebSocket relay, a browser UI,
+and a separate interactive encryption toolkit.
+
+> **Security warning:** This project is for demonstration only. Its current
+> encryption options and transport do not provide production-grade
+> confidentiality, integrity, or authentication. Do not use it to protect
+> sensitive conversations.
+
+## What the project includes
+
+- **Browser chat UI** — contact list, search, one-to-one message view, and
+  per-message selection of cipher, encoding, hash, or plaintext.
+- **Voice messages** — recorded in the browser with `MediaRecorder`; the
+  selected message transform is applied before the payload is relayed. Plain
+  voice is also an available option.
+- **File sharing** — browser-side Base64 data URLs sent in chunks. The UI
+  rejects files larger than 5 MB. File contents are **not encrypted** by the
+  current implementation.
+- **Audio/video call controls** — browser WebRTC media with call signaling
+  relayed through the WebSocket server. Calls require browser microphone or
+  camera permission and a working peer connection.
+- **Interactive encryption toolkit** — `encryption.py` can be run separately
+  to encrypt/decrypt text, encode/decode data, create hashes, and verify salted
+  hashes.
+
+## Available transforms
+
+| Type | Options in the code |
 |---|---|
-| Symmetric | AES-128 ECB, DES-56 ECB, 3DES-168 ECB |
-| Asymmetric | RSA-2048 (PKCS1-OAEP) |
-| Encoding | Base64, Hex, URL Encode |
-| Hashing | MD5, SHA-256, SHA-512 |
-| Salted Hashing | Salted SHA-256, Salted SHA-512 |
- 
-> Encryption is implemented in both Python (`encryption.py`) and JavaScript (`crypto.js`) with matching logic so the browser frontend and Python CLI are fully interoperable.
- 
----
- 
-## Project Structure
- 
-```
-├── server.py         # WebSocket + HTTP server (Python)
-├── client.py         # Terminal chat client (Python)
-├── encryption.py     # Encryption/decryption logic (Python)
-├── index.html        # Browser UI
-├── script.js         # WebSocket, messaging, voice, file, WebRTC logic
-├── crypto.js         # Encryption/decryption logic (JavaScript)
-├── ui-extras.js      # Cipher pill UI, contacts list, search
-└── style.css         # Styles
-```
- 
----
- 
-## Getting Started
- 
-### Prerequisites
- 
-- Python 3.8+
-- pip
-### Install dependencies
- 
+| Symmetric ciphers | AES-128, DES, and 3DES, all using ECB mode with PKCS7 padding |
+| Public-key demo | 2048-bit RSA-OAEP |
+| Encodings | Base64, hexadecimal, and URL encoding |
+| Hashes | MD5, SHA-256, SHA-512, salted SHA-256, and salted SHA-512 |
+| Other | Plaintext (no encryption) |
+
+Encodings are reversible representations, not encryption. Hashes are
+one-way digests and cannot be decrypted.
+
+### Security and interoperability limitations
+
+- AES, DES, and 3DES use ECB mode, which reveals repeated patterns. DES and
+  3DES are legacy algorithms; the code also pads or truncates user-provided
+  keys rather than using a password-based key derivation function.
+- The RSA message format includes the private key alongside the ciphertext.
+  Anyone who can read that payload can recover its message; the RSA option
+  must not be treated as confidential encryption.
+- The browser uses unencrypted `ws://` transport. The server binds to
+  `localhost` and relays messages, but the code does not provide authenticated
+  identities or message integrity.
+- File chunks are sent as Base64, not ciphertext. Voice messages can be sent
+  as plaintext when the corresponding UI option is selected.
+- `client.py` is a legacy text client and is **not compatible** with
+  `server.py` as currently written: it sends a `method|ciphertext` payload,
+  while the server expects an initial JSON `init` message and then JSON
+  messages with a `type` field.
+- Python and JavaScript implementations are separate; the repository does not
+  include tests proving that their ciphertext formats interoperate. In
+  particular, their 3DES key handling differs.
+
+## Run the browser server
+
+### Requirements
+
+- Python 3.8 or later
+- `pip`
+- A modern browser; the page loads CryptoJS, Font Awesome, and fonts from
+  external CDNs.
+
+Install the Python dependencies:
+
 ```bash
-pip install websockets pycryptodome
+python -m pip install websockets pycryptodome
 ```
- 
-### Run the server
- 
+
+Start the server:
+
 ```bash
 python server.py
 ```
- 
-This starts two things:
-- **WebSocket server** on `ws://localhost:5555`
-- **HTTP server** on `http://localhost:8080` (serves the frontend)
-Open your browser at **http://localhost:8080** and enter a username to start chatting.
- 
----
- 
-## Python CLI Client
- 
-To chat from the terminal instead of the browser:
- 
+
+The script starts an HTTP server at `http://localhost:8080` for the frontend
+and a WebSocket server at `ws://localhost:5555`. Open
+[`http://localhost:8080`](http://localhost:8080) in your browser. The server
+binds to localhost; it is not configured as a public deployment.
+
+**Validation note:** In the current checkout, `python server.py` started both
+listeners and the frontend returned HTTP 200, but an initial JSON WebSocket
+handshake closed and the browser showed “Disconnected.” A working browser chat
+could not be verified, so the features above describe the code, not a
+successful end-to-end run. There is no dependency manifest or pinned
+`websockets` version in this repository.
+
+## Standalone encryption toolkit
+
+Run the interactive toolkit:
+
 ```bash
-python client.py
+python -X utf8 encryption.py
 ```
- 
-You will be prompted for:
-- **Username** — your display name
-- **Encryption method** — `aes` / `des` / `3des` / `base64` / `hex` / `url` (default: `aes`)
-- **Secret key** — shared key for symmetric ciphers (default: `default`)
-> The Python client handles text only. Voice recording and playback are browser-only features.
- 
----
- 
-## Encryption Toolkit (standalone)
- 
-`encryption.py` also runs as an interactive CLI tool for encrypting, decrypting, hashing, and verifying salted hashes:
- 
-```bash
-python encryption.py
-```
- 
----
- 
-## How It Works
- 
-1. Both parties open the app in a browser and enter a username.
-2. The server broadcasts the list of connected users.
-3. Clicking a contact opens a private chat session.
-4. Messages are encrypted **in the browser** before being sent to the server — the server only relays the ciphertext and never sees plaintext.
-5. The receiver decrypts the message using the chosen cipher and shared key.
-Voice messages follow the same path: audio is captured, base64-encoded, encrypted with the selected cipher, and sent as a normal message payload.
- 
----
- 
-## Security Notes
- 
-- Cipher mode is **ECB** for AES/DES/3DES — suitable for demonstration purposes. For production use, CBC or GCM with random IVs is strongly recommended.
-- The RSA key pair is **ephemeral** — regenerated on every server/client restart.
-- The server acts as a relay only and does not store messages.
-- The secret key is shared out-of-band (both users must use the same key).
----
- 
-## Tech Stack
- 
-- **Backend** — Python, `websockets`, `pycryptodome`
-- **Frontend** — Vanilla JS, HTML/CSS, CryptoJS 4.x, Web Crypto API, WebRTC
-- **Transport** — WebSocket (port 5555), HTTP (port 8080)
+
+It presents options for symmetric encryption, RSA, encodings, hashes, and
+salted-hash verification. This toolkit is separate from the browser server.
+
+## Project files
+
+| File | Purpose |
+|---|---|
+| `server.py` | Local HTTP frontend server and WebSocket message relay |
+| `index.html` | Browser chat structure and external frontend dependencies |
+| `script.js` | Browser messaging, voice, file-transfer, and WebRTC logic |
+| `crypto.js` | Browser-side cipher, encoding, and hashing functions |
+| `ui-extras.js` | Cipher controls, contact list, and conversation search |
+| `style.css` | Browser UI styles |
+| `encryption.py` | Python encryption and hashing toolkit |
+| `client.py` | Legacy text client; protocol does not match `server.py` |
